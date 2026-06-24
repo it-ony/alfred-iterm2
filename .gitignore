@@ -1,0 +1,10 @@
+# generated
+iterm2-session-switcher.alfredworkflow
+
+# IDE
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
