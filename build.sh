@@ -8,8 +8,9 @@ import plistlib, zipfile
 from pathlib import Path
 
 BUNDLE_ID = "com.tfindeisen.iterm2-session-switcher"
-SF_UID    = "C1A2B3D4-0001-0001-0001-000000000001"
-RS_UID    = "C1A2B3D4-0002-0002-0002-000000000002"
+SF_UID  = "C1A2B3D4-0001-0001-0001-000000000001"
+UA_UID  = "C1A2B3D4-0003-0003-0003-000000000003"
+RS_UID  = "C1A2B3D4-0002-0002-0002-000000000002"
 
 plist = {
     "bundleid": BUNDLE_ID,
@@ -47,10 +48,19 @@ plist = {
             },
         },
         {
+            "type": "alfred.workflow.utility.argument",
+            "uid": UA_UID, "version": 1,
+            "config": {
+                "argument": "",
+                "passthroughargument": True,
+                "variables": {},
+            },
+        },
+        {
             "type": "alfred.workflow.action.script",
             "uid": RS_UID, "version": 2,
             "config": {
-                "script": 'curl -sf -X POST "http://127.0.0.1:9998/sessions/{query}/activate"\n',
+                "script": 'python3 activate.py "{query}" && osascript -e \'tell application "iTerm2" to activate\'\n',
                 "scriptfile": "",
                 "type": 0,
                 "scriptargtype": 0,
@@ -61,12 +71,16 @@ plist = {
     ],
     "connections": {
         SF_UID: [
-            {"destinationuid": RS_UID, "modifiers": 0, "modifiersubtext": "", "vitoclose": True}
-        ]
+            {"destinationuid": UA_UID, "modifiers": 0, "modifiersubtext": "", "vitoclose": False}
+        ],
+        UA_UID: [
+            {"destinationuid": RS_UID, "modifiers": 0, "modifiersubtext": "", "vitoclose": False}
+        ],
     },
     "uidata": {
         SF_UID: {"xpos": 150.0, "ypos": 50.0},
-        RS_UID: {"xpos": 450.0, "ypos": 50.0},
+        UA_UID: {"xpos": 350.0, "ypos": 50.0},
+        RS_UID: {"xpos": 550.0, "ypos": 50.0},
     },
 }
 
@@ -74,6 +88,7 @@ out = Path("iterm2-session-switcher.alfredworkflow")
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
     zf.writestr("info.plist", plistlib.dumps(plist, fmt=plistlib.FMT_XML).decode())
     zf.write("sessions.py")
+    zf.write("activate.py")
 
 print(f"Built {out}  ({out.stat().st_size} bytes)")
 PYEOF
